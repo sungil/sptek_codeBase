@@ -1,0 +1,68 @@
+### 1. 권한 제한이 없는 path
+GET {{api-server}}/01/example/authentication/authFree
+Content-Type: text/html
+
+### 2. 로그인 필요함
+GET {{api-server}}/02/example/login/authentication/needAuth
+Authorization: Bearer {{jwt}}
+Content-Type: text/html
+
+### 3. Special Auth 가 필요함
+GET {{api-server}}/03/example/auth-special/authentication/needAuth
+Authorization: Bearer {{jwt}}
+Content-Type: text/html
+
+### 4. User Role 이 필요함
+GET {{api-server}}/04/example/role-user/authentication/needAuth
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+#### 5. System Role 이 필요함
+GET {{api-server}}/05/example/role-system/authentication/needAuth
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+#### 6. Admin or AdminSpecial Role 이 필요함
+GET {{api-server}}/06/example/role-admin-adminSpecial/authentication/needAuth
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+#### 7. POST 요청은 로그인 필요함
+#GET {{api-server}}/07/example/postLogin/authentication/needAuth
+POST {{api-server}}/07/example/postLogin/authentication/needAuth
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+#### 8. Auth 경로가 아니지만 내부 적으로 Auth 체크 메소드 를 사용 하는 경우
+GET {{api-server}}/08/example/authentication/authFreeWithAuthCheckMethod
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+#### 9. Auth 경로가 아니지만 내부 적으로 Role 체크 메소드를 사용 하는 경우
+GET {{api-server}}/09/example/authentication/authFreeWithRoleCheckMethod
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+#### 10. 로그인 API (인증 토큰)
+POST {{api-server}}/10/example/authentication/loginxx
+Content-Type: application/json
+
+{
+  "username": "sungilry1@naver.com",
+  "password": "1q2w3e4r5t!Q"
+}
+> {%
+    client.global.set("jwt", response.body.result);
+%}
+
+
+
+
+#### (외부) API 연동 테스트를 위한 public echo 서버
+POST https://jsonplaceholder.typicode.com/posts
+Content-Type: application/json
+
+{
+  "name" : "sungil",
+  "job": "developer"
+}
