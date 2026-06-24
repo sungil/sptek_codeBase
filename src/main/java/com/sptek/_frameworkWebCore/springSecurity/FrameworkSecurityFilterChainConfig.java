@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -42,14 +43,47 @@ public class FrameworkSecurityFilterChainConfig {
 //        return httpSecurity.build();
 //    }
 
+    public static final String exampleViewPattern = "/view/example/";
+    public static final String exampleApiPattern = "/api/*/example/";
+
     @Bean
+    @Order(10)
+    @Profile(value = {"prd"})
+    public SecurityFilterChain securityFilterChainForBlockOnPrd(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity
+                .securityMatcher("/swagger-ui.html", "/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**", "/h2-console/**", exampleViewPattern + "**", exampleApiPattern + "**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(authorize -> authorize
+                        .anyRequest().denyAll()
+                );
+
+        return httpSecurity.build();
+    }
+
+    @Bean
+    @Order(10)
+    @Profile(value = {"dev", "stg"})
+    public SecurityFilterChain securityFilterChainForBlockOnStgDev(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity
+                .securityMatcher("/h2-console/**", exampleViewPattern + "**", exampleApiPattern + "**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(authorize -> authorize
+                        .anyRequest().denyAll()
+                );
+
+        return httpSecurity.build();
+    }
+
+
+    @Bean
+    @Order(11)
     public SecurityFilterChain securityFilterChainForSystemSupportView(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .securityMatcher("/", "/view/index", "/view/login", "/view/loginProcess", "/view/logout")
 
                 // CSRF를 비활성화할 경로 지정
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/**") // todo: 테스트 를 편하게 하기 위해 모든 경로 에서 dsrf 토큰을 무시 하도록 임시 처리
+                        //.ignoringRequestMatchers("/**") // NOTE: 테스트를 편하게 하기 위해 모든 경로에서 dsrf 토큰을 무시할 경우
                         .csrfTokenRepository(new HttpSessionCsrfTokenRepository())
                 )
 
@@ -78,9 +112,39 @@ public class FrameworkSecurityFilterChainConfig {
     }
 
     @Bean
+    @Order(20)
     public SecurityFilterChain securityFilterChainForSystemSupportApi(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
-                .securityMatcher("/systemSupportApi/**", "/error/**", "/actuator/**")
+                .securityMatcher("/systemSupportApi/**", "/error/**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/systemSupportApi/**", "/error/**").permitAll() //NOTE: 필요시 경로를 더 구체화해서 적용할 것
+                        .anyRequest().authenticated()
+                );
+
+        return httpSecurity.build();
+    }
+
+    @Bean
+    @Order(30)
+    public SecurityFilterChain securityFilterChainForActuator(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity
+                .securityMatcher("/actuator/**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/actuator/health").permitAll()
+                        .anyRequest().authenticated() //나머지 정보는 보안상 인증 상태일때만 제공
+                );
+
+        return httpSecurity.build();
+    }
+    
+    @Bean
+    @Order(40)
+    @Profile(value = {"local", "dev", "stg"})
+    public SecurityFilterChain securityFilterChainForSwaggerSupport(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity
+                .securityMatcher("/swagger-ui.html", "/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**")
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                         .anyRequest().permitAll()
@@ -88,15 +152,16 @@ public class FrameworkSecurityFilterChainConfig {
 
         return httpSecurity.build();
     }
-    
+
     @Bean
-    @Profile(value = {"local", "dev", "stg"})
-    public SecurityFilterChain securityFilterChainForDevelopSupport(HttpSecurity httpSecurity) throws Exception {
+    @Order(41)
+    @Profile(value = {"local"})
+    public SecurityFilterChain securityFilterChainForH2Console(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
-                .securityMatcher("/swagger-ui.html", "/swagger-ui/**", "/h2-console/**")
+                .securityMatcher("/h2-console/**")
                 .csrf(AbstractHttpConfigurer::disable)
                 .headers(headers -> headers
-                        //콘솔 UI 구성상 FrameOptionsConfig::disable 옵션이 필요힘(보안상 해당 경로만 적용)
+                        //콘솔 UI 구성상 FrameOptionsConfig::disable 옵션이 필요힘(보안상 필요 경로만 적용)
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
                 )
                 .authorizeHttpRequests(authorize -> authorize
@@ -106,9 +171,12 @@ public class FrameworkSecurityFilterChainConfig {
         return httpSecurity.build();
     }
 
-    public static final String exampleViewPattern = "/view/example/";
+
+
+
     @Bean
-    @Profile(value = {"local", "dev", "stg"})
+    @Order(50)
+    @Profile(value = {"local"})
     public SecurityFilterChain securityFilterChainForExampleView(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 // example view 만 적용
@@ -187,9 +255,9 @@ public class FrameworkSecurityFilterChainConfig {
         return httpSecurity.build();
     }
 
-    public static final String exampleApiPattern = "/api/*/example/";
     @Bean
-    @Profile(value = {"local", "dev", "stg"})
+    @Order(60)
+    @Profile(value = {"local"})
     public SecurityFilterChain securityFilterChainForExampleApi(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 // api example 적용

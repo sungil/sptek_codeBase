@@ -5,11 +5,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.util.AntPathMatcher;
@@ -27,6 +29,7 @@ public class SecurityFilterChainConfig {
     private AntPathMatcher antPathMatcher = new AntPathMatcher();
 
     @Bean
+    @Order(100)
     //스프링 6.x 버전부터 변경된 방식으로, spring security는 자체적으로 준비된 필터들과 동작 순서가 있으며 아래는 그 필터들의 동작유무 및 설정 옵션을 지정하는 역할을 한다.
     public SecurityFilterChain securityFilterChainForView(HttpSecurity httpSecurity) throws Exception {
         String myPattern = "/view/";
@@ -41,7 +44,7 @@ public class SecurityFilterChainConfig {
 
                 // CSRF 비활성화 경로 지정
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/**") // todo: 테스트 를 편하게 하기 위해 모든 경로 에서 csrf 토큰을 무시 하도록 임시 처리
+                        //.ignoringRequestMatchers("/**") // MOTE: 테스트를 편하게 하기 위해 모든 경로 에서 csrf 토큰을 무시할 경우
                         .ignoringRequestMatchers("/noCsrfToken/**")
                 )
 
@@ -65,7 +68,7 @@ public class SecurityFilterChainConfig {
                             .requestMatchers(HttpMethod.POST, myPattern + "postRole-system/**").authenticated()
 
                             //나머지
-                            .anyRequest().permitAll()
+                            .anyRequest().permitAll() //일반 대고객 사이트의 경우 기본 페이지들은 모두 permitAll 로 처리
                             //.anyRequest().authenticated()
                 )
 
@@ -83,6 +86,7 @@ public class SecurityFilterChainConfig {
     }
 
     @Bean
+    @Order(110)
     public SecurityFilterChain securityFilterChainForApi(HttpSecurity httpSecurity) throws Exception {
         String myPattern = "/api/*/"; // *->는 버전 용도임
 
@@ -96,6 +100,9 @@ public class SecurityFilterChainConfig {
 
                 // JWT를 사용하는 경우 CSRF방지 기능을 사용 할 필요가 없음.(CSRF 공격이 쿠키 방식의 session 문제에 기인한 것으로 JWT만 사용하여 세션을 사용하지 않는다면 disable 처리)
                 .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
 
                 // todo: 테스트를 편하게 하기 위해 cors disable 임시 처리
                 .cors(AbstractHttpConfigurer::disable)
@@ -120,7 +127,7 @@ public class SecurityFilterChainConfig {
                             .requestMatchers(HttpMethod.POST, myPattern + "postRole-system/**").authenticated()
 
                             //나머지
-                            .anyRequest().permitAll()
+                            .anyRequest().permitAll() //일반 대고객 사이트의 경우 기본 API는 모두 permitAll 로 처리
                             //.anyRequest().authenticated()
                 )
 

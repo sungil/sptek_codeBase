@@ -2,10 +2,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, info #"*"
+        include: health
   endpoint:
     health:
-      show-details: always
+      show-details: never
 
 # health 체크 대상에서 빼고 싶은 요소들
 management.health.redis.enabled: false

@@ -33,6 +33,7 @@
 
 
   <form th:action="@{/view/loginProcess(redirectTo=${redirectTo})}" method="post" >
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
     <!--username, password 명칭은 고정, method=post 고정, loginProcess 은 실제 controller 없이 spring security 가 CustomAuthenticationProvider 로 넘겨줌  //-->
     <label class="label-normal">email</label>
     <input class="input-normal" type="text" name="username" placeholder="email">
