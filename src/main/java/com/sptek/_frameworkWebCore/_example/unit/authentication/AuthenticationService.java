@@ -83,9 +83,7 @@ public class AuthenticationService {
 
     @Transactional(readOnly = true)
     public List<RoleDto> findAllRoles(){
-        List<Role> roles = Optional.of(roleRepository.findAll())
-                .filter(list -> !list.isEmpty())
-                .orElseThrow(() -> new ServiceException(ServiceErrorCodeEnum.NO_RESOURCE_ERROR, "any Role found"));
+        List<Role> roles = requireNotEmpty(roleRepository.findAll(), "any Role found");
 
         return modelMapper.map(roles, new TypeToken<List<RoleDto>>() {}.getType());
 
@@ -99,27 +97,21 @@ public class AuthenticationService {
 
     @Transactional(readOnly = true)
     public List<RoleDto> findRolesByRoleNameIn(List<String> roleNames){
-        List<Role> roles = Optional.of(roleRepository.findByRoleNameIn(roleNames))
-                .filter(list -> !list.isEmpty())
-                .orElseThrow(() -> new ServiceException(ServiceErrorCodeEnum.NO_RESOURCE_ERROR, "any Role found"));
+        List<Role> roles = requireNotEmpty(roleRepository.findByRoleNameIn(roleNames), "any Role found");
 
         return modelMapper.map(roles, new TypeToken<List<RoleDto>>() {}.getType());
     }
 
     @Transactional(readOnly = true)
     public List<TermsDto> findAllTerms(){
-        List<Terms> terms = Optional.of(termsRepository.findAll())
-                .filter(list -> !list.isEmpty())
-                .orElseThrow(() -> new ServiceException(ServiceErrorCodeEnum.NO_RESOURCE_ERROR, "any Terms found"));
+        List<Terms> terms = requireNotEmpty(termsRepository.findAll(), "any Terms found");
 
         return modelMapper.map(terms, new TypeToken<List<TermsDto>>() {}.getType());
     }
 
     @Transactional(readOnly = true)
     public List<TermsDto> findTermsByTermsNameIn(List<String> termsNames){
-        List<Terms> terms = Optional.of(termsRepository.findByTermsNameIn(termsNames))
-                .filter(list -> !list.isEmpty())
-                .orElseThrow(() -> new ServiceException(ServiceErrorCodeEnum.NO_RESOURCE_ERROR, "any Terms found"));
+        List<Terms> terms = requireNotEmpty(termsRepository.findByTermsNameIn(termsNames), "any Terms found");
 
         return modelMapper.map(terms, new TypeToken<List<TermsDto>>() {}.getType());
     }
@@ -134,9 +126,7 @@ public class AuthenticationService {
 
     @Transactional(readOnly = true)
     public List<AuthorityDto> findAllAuthorities() {
-        List<Authority> authorities = Optional.of(authorityRepository.findAll())
-                .filter(list -> !list.isEmpty())
-                .orElseThrow(() -> new ServiceException(ServiceErrorCodeEnum.NO_RESOURCE_ERROR, "any Authority found"));
+        List<Authority> authorities = requireNotEmpty(authorityRepository.findAll(), "any Authority found");
 
         return modelMapper.map(authorities, new TypeToken<List<AuthorityDto>>() {}.getType());
     }
@@ -173,6 +163,14 @@ public class AuthenticationService {
     @PreAuthorize("hasRole('ADMIN')")
     public String iNeedRole() {
         return "I Need Specific Role";
+    }
+
+    private <T> List<T> requireNotEmpty(List<T> values, String exceptionMessage) {
+        if (values == null || values.isEmpty()) {
+            throw new ServiceException(ServiceErrorCodeEnum.NO_RESOURCE_ERROR, exceptionMessage);
+        }
+
+        return values;
     }
 
 }

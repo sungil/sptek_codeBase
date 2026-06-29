@@ -36,10 +36,6 @@ public class DEPRECATED_RepositoryService {
             List<TestJpa> returnList = testJpaRepository.findByMyKeyIn(keys);
             testRepositoryWithList(returnList);
             returnMap.put("returnList", returnList);
-
-            Optional<List<TestJpa>> returnListOpt = testJpaRepository.findOptByMyKeyIn(keys);
-            testRepositoryWithListOpt(returnListOpt);
-            returnMap.put("returnListOpt", returnListOpt);
         }
 
         log.debug("strMap : {}", new HashMap<String, String>());
@@ -99,14 +95,4 @@ public class DEPRECATED_RepositoryService {
         }
     }
 
-    public void testRepositoryWithListOpt(Optional<List<TestJpa>> testsOpt) {
-        log.debug("isEmpty : {}" , testsOpt.isEmpty()); //조회값이 없더라도 항상 empty List를 가지고 있음으로 true, 내부 List는 empty 임
-        log.debug("isPresent : {}" , testsOpt.isPresent());
-
-        testsOpt.ifPresent(tests -> log.debug("ifPresent : {}", tests));
-
-        testsOpt.ifPresentOrElse(
-                tests -> log.debug("ifPresent : {}", tests)
-                ,() -> log.debug("ifPresentOrElse"));
-    }
 }

@@ -13,7 +13,4 @@ public interface TestJpaRepository extends JpaRepository<TestJpa, Long> {
 
     List<TestJpa> findByMyKeyIn (List<String> keys); //List형 리턴 메소드의 경우 결과가 없어도 null 이 아니라 empty List로 넘어옴
 
-    //For Test, Optional<List<T>> 는 사실 불필요, 테스트용
-    Optional<List<TestJpa>> findOptByMyKeyIn (List<String> keys);
-
 }

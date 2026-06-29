@@ -11,6 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 @Slf4j
@@ -37,41 +38,45 @@ public class AuthenticationUtil {
     }
 
     // spring security 필터에 의해 처리된 접속자 정보(정리된 정보)
-    public @Nullable static UserDto getMyUserDto() {
-        if (!isRealLogin()) return null;
+    public static Optional<UserDto> getMyUserDtoOptional() {
+        if (!isRealLogin()) return Optional.empty();
         try {
-            return ((CustomUserDetails) AuthenticationUtil.getMyAuthentication().getPrincipal()).getUserDto();
+            return Optional.ofNullable(((CustomUserDetails) AuthenticationUtil.getMyAuthentication().getPrincipal()).getUserDto());
         } catch (ClassCastException e) {
             // todo: ClassCastException 하는 이유는 sessionId로(view) 인증 받는 케이스와 JWT로 인증 받는 케이스에 SecurityContextHolder 의 Authentication 정보 구조가 서로 다르기 때문임
-            return null;
+            return Optional.empty();
         }
+    }
+
+    public @Nullable static UserDto getMyUserDto() {
+        return getMyUserDtoOptional().orElse(null);
+    }
+
+    public static Optional<Long> getMyIdOptional() {
+        return getMyUserDtoOptional().map(UserDto::getId);
     }
 
     public @Nullable static Long getMyId() {
-        if (!isRealLogin()) return null;
-        try {
-            return ((CustomUserDetails) AuthenticationUtil.getMyAuthentication().getPrincipal()).getUserDto().getId();
-        } catch (ClassCastException e) {
-            return null;
-        }
+        return getMyIdOptional().orElse(null);
     }
 
     public static String getMyName() {
-        if (!isRealLogin()) return CommonConstants.ANONYMOUS_USER;
-        try {
-            return ((CustomUserDetails) AuthenticationUtil.getMyAuthentication().getPrincipal()).getUserDto().getEmail();
-        } catch (ClassCastException e) {
-            return ((UserDetails)AuthenticationUtil.getMyAuthentication().getPrincipal()).getUsername();
-        }
+        Authentication authentication = AuthenticationUtil.getMyAuthentication();
+        if (!isRealLogin() || authentication == null) return CommonConstants.ANONYMOUS_USER;
+
+        return getMyUserDtoOptional()
+                .map(UserDto::getEmail)
+                .orElseGet(() -> authentication.getPrincipal() instanceof UserDetails userDetails
+                        ? userDetails.getUsername()
+                        : CommonConstants.ANONYMOUS_USER);
+    }
+
+    public static Optional<String> getMyEmailOptional() {
+        return getMyUserDtoOptional().map(UserDto::getEmail);
     }
 
     public @Nullable static String getMyEmail() {
-        if (!isRealLogin()) return null;
-        try {
-            return ((CustomUserDetails) AuthenticationUtil.getMyAuthentication().getPrincipal()).getUserDto().getEmail();
-        } catch (ClassCastException e) {
-            return null;
-        }
+        return getMyEmailOptional().orElse(null);
     }
 
     public static Set<String> getMyRoles() {
@@ -83,8 +88,11 @@ public class AuthenticationUtil {
     }
 
     private static Set<String> getMyAuthorities(String authFilterStr) {
+        Authentication authentication = AuthenticationUtil.getMyAuthentication();
+        if (!isRealLogin() || authentication == null) return Set.of();
+
         Set<String> uniqueGrantedAuthorities = new HashSet<>();
-        getMyAuthentication().getAuthorities().stream()
+        authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .filter(grantedAuthority -> grantedAuthority != null && grantedAuthority.startsWith(authFilterStr))
                 // ROLE_, AUTH_ prefix 를 제외 할지 여부

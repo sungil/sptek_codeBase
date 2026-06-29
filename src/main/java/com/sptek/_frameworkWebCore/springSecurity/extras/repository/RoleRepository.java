@@ -7,15 +7,5 @@ import java.util.List;
 
 public interface RoleRepository extends JpaRepository<Role, Long> {
 
-/*
-    default Optional<List<Role>> findAllAsOptional() {
-        //todo : 아래 둘중 뭐가 더 날까?
-        return Optional.ofNullable(findAll());
-
-        //List<Role> roles = findAll();
-        //return roles.isEmpty() ? Optional.empty() : Optional.of(roles);
-    }
-*/
-
     List<Role> findByRoleNameIn(List<String> roleNames);
 }
