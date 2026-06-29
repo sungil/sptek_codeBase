@@ -45,7 +45,7 @@ public class AuthenticationService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Transactional
-    public User saveUser(SignupRequestDto signupRequestDto){
+    public UserDto saveUser(SignupRequestDto signupRequestDto){
         List<RoleDto> roles = findRolesByRoleNameIn(signupRequestDto.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toList()));
         List<TermsDto> terms = findTermsByTermsNameIn(signupRequestDto.getTerms().stream().map(TermsDto::getTermsName).collect(Collectors.toList()));
 
@@ -54,11 +54,11 @@ public class AuthenticationService {
         signupRequestDto.setPassword(bCryptPasswordEncoder.encode(signupRequestDto.getPassword()));
         User user = modelMapper.map(signupRequestDto, User.class);
         log.debug("new userEntity : {}", user);
-        return userRepository.save(user);
+        return modelMapper.map(userRepository.save(user), UserDto.class);
     }
 
     @Transactional
-    public User updateUser(UserUpdateRequestDto userUpdateRequestDto){
+    public UserDto updateUser(UserUpdateRequestDto userUpdateRequestDto){
         List<RoleDto> roles = findRolesByRoleNameIn(userUpdateRequestDto.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toList()));
         List<TermsDto> terms = findTermsByTermsNameIn(userUpdateRequestDto.getTerms().stream().map(TermsDto::getTermsName).collect(Collectors.toList()));
 
@@ -78,7 +78,7 @@ public class AuthenticationService {
 
 
         log.debug("update userEntity : {}", originUser);
-        return originUser;
+        return modelMapper.map(originUser, UserDto.class);
     }
 
     @Transactional(readOnly = true)

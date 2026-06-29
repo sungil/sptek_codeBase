@@ -2,7 +2,6 @@ package com.sptek._frameworkWebCore._example.unit.authentication;
 
 import com.sptek._frameworkWebCore._annotation.Enable_ResponseOfViewGlobalException_At_ViewController;
 import com.sptek._frameworkWebCore.springSecurity.extras.dto.*;
-import com.sptek._frameworkWebCore.springSecurity.extras.entity.User;
 import com.sptek._frameworkWebCore.util.AuthenticationUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -60,7 +59,7 @@ public class AuthenticationViewController {
             signupRequestDto.setAllTerms(authenticationService.findAllTerms());
             return htmlBasePath + "signup";
         }
-        User savedUser = authenticationService.saveUser(signupRequestDto);
+        UserDto savedUser = authenticationService.saveUser(signupRequestDto);
 
         //redirect 페이지에 model을 보내기 위해 addFlashAttribute 사용(1회성으로 전달됨)
         redirectAttributes.addFlashAttribute("username", savedUser.getName());
@@ -115,7 +114,7 @@ public class AuthenticationViewController {
 
             return htmlBasePath + "userUpdate";
         }
-        User savedUser = authenticationService.updateUser(userUpdateRequestDto);
+        UserDto savedUser = authenticationService.updateUser(userUpdateRequestDto);
 
         redirectAttributes.addFlashAttribute("savedUserEmail", savedUser.getEmail());
         return "redirect:/view/example/login/authentication/userUpdateForm/" + userUpdateRequestDto.getEmail();
