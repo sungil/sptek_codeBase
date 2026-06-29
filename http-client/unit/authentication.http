@@ -55,9 +55,6 @@ Content-Type: application/json
     client.global.set("jwt", response.body.result);
 %}
 
-
-
-
 #### (외부) API 연동 테스트를 위한 public echo 서버
 POST https://jsonplaceholder.typicode.com/posts
 Content-Type: application/json
