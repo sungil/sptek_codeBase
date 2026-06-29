@@ -1,0 +1,3 @@
+display_name: SPT Code Analysis
+short_description: Analyze SPT Framework code using repository conventions.
+default_prompt: Analyze this SPT Framework code using AGENT.md and Base code conventions.

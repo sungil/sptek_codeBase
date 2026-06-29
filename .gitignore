@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Codex local runtime ###
+.codex/run/
