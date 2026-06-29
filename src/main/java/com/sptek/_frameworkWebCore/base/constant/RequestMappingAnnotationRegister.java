@@ -16,10 +16,10 @@ import java.util.stream.Collectors;
 // todo: --> 코드 개선이 필요한지 살펴보자
 @Slf4j
 
-// Controller class 와 그 내부 method 에 적용된 타멧 페키지 Annotation 정보를 모두 가지고 있는 역할
+// 각 RequestMapping 핸들러의 클래스와 메소드에 선언된 프레임워크 어노테이션 및 속성 정보를 HTTP 메소드 + URL 패턴 기준으로 보관한다.
 public class RequestMappingAnnotationRegister {
     private static Map<String, Map<String, Map<String, Object>>> requestAnnotationRegister = Collections.emptyMap();
-    //OPTIONS은 메소드가 없어도 스프링 단에서 처림됨, HEAD는 메소드가 없어도 스프링단에서 GET이 호출됨(단 body를 내리지 않는다)
+    //OPTIONS, HEAD(body는 없음)는 메소드를 구현하지 않아도 spring 내부에서 자동 생성.
     private final List<String> ALL_HTTP_METHODS = Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH"/*, "OPTIONS", "HEAD"*/);
     private static final AntPathMatcher antPathMatcher = new AntPathMatcher();
 
@@ -130,7 +130,8 @@ public class RequestMappingAnnotationRegister {
         }
     }
 
-    // 매핑 자체가 없는 404, 405 인지 확인 할 수 있음
+    // 현재 요청의 HTTP Method + URI 조합이 등록된 매핑인지 확인한다.
+    // URL 자체가 없거나, URL은 있지만 HTTP Method가 맞지 않는 경우 모두 false가 된다
     public static boolean hasRequestMapping(HttpServletRequest request) {
         return hasRequestMapping(request.getMethod(), request.getRequestURI());
     }

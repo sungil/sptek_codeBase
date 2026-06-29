@@ -27,11 +27,11 @@ import java.util.concurrent.CompletionException;
 @Component
 
 // fw 의 api Controller 가 object 타입으로 넘긴 결과를 적절한 타입으로 변경하여 리턴 처리
-// todo: 중요 !!
-//  CompletableFuture 처리가 추가 되면서 Async 응답을 하는 경우 쓰레드 내부에서는 joinPoint.proceed()를 사용 할수가 없음
-//  그래서 ReflectionUtils 을 통해 직접 해당 메소드를 호출하여 처리하고 있음
-//  이 경우 joinPoint.proceed() 가 호출 되지 않았음으로 본인의 befroe, after 및 AOP 필터 체인으로도 전파되지 못함
-//  그래서 해당 AOP는 AOP 필터 체인에서 가장 하위에 존재해야 정상 동작 할수 있음을 알고 사용해야 함!
+// Note: 중요!!
+// CompletableFuture 처리가 추가 되면서 Async 응답을 하는 경우 쓰레드 내부에서는 joinPoint.proceed()를 사용 할수가 없음
+// 그래서 ReflectionUtils 을 통해 직접 해당 메소드를 호출하여 처리하고 있음
+// 이 경우 joinPoint.proceed() 가 호출 되지 않았음으로 본인의 befroe, after 및 AOP 필터 체인으로도 전파되지 못함
+// 그래서 해당 AOP는 AOP 필터 체인에서 가장 하위에 존재해야 정상 동작 할수 있음을 알고 사용해야 함!
 
 public class ApiCommonResponseHelperAspect {
     private final TaskExecutor taskExecutor;
