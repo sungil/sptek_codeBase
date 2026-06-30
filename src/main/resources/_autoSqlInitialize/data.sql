@@ -1,27 +1,3 @@
-INSERT INTO phoneBook (user_name, phone_number)
-SELECT 'mom', '010-1234-2225'
-WHERE NOT EXISTS (SELECT 1 FROM phoneBook WHERE user_name = 'mom');
-
-INSERT INTO phoneBook (user_name, phone_number)
-SELECT 'father', '010-4545-2985'
-WHERE NOT EXISTS (SELECT 1 FROM phoneBook WHERE user_name = 'father');
-
-INSERT INTO phoneBook (user_name, phone_number)
-SELECT 'alice_smith', '010-9987-0000'
-WHERE NOT EXISTS (SELECT 1 FROM phoneBook WHERE user_name = 'alice_smith');
-
-INSERT INTO terms (termsname)
-SELECT 'TERMS_MEMBERSHIP'
-WHERE NOT EXISTS (SELECT 1 FROM terms WHERE termsname = 'TERMS_MEMBERSHIP');
-
-INSERT INTO terms (termsname)
-SELECT 'TERMS_MARKETING'
-WHERE NOT EXISTS (SELECT 1 FROM terms WHERE termsname = 'TERMS_MARKETING');
-
-INSERT INTO terms (termsname)
-SELECT 'TERMS_INFO_SHARE'
-WHERE NOT EXISTS (SELECT 1 FROM terms WHERE termsname = 'TERMS_INFO_SHARE');
-
 INSERT INTO ROLE (ROLENAME)
 SELECT 'ROLE_USER'
 WHERE NOT EXISTS (SELECT 1 FROM ROLE WHERE ROLENAME = 'ROLE_USER');
@@ -38,6 +14,7 @@ INSERT INTO ROLE (ROLENAME)
 SELECT 'ROLE_SYSTEM'
 WHERE NOT EXISTS (SELECT 1 FROM ROLE WHERE ROLENAME = 'ROLE_SYSTEM');
 
+
 INSERT INTO authority (authority, code, alias, description)
 SELECT 'AUTH_SPECIAL_FOR_TEST', 'R000', 'SFT', 'for test'
 WHERE NOT EXISTS (SELECT 1 FROM authority WHERE authority = 'AUTH_SPECIAL_FOR_TEST');
@@ -49,3 +26,29 @@ WHERE NOT EXISTS (SELECT 1 FROM authority WHERE authority = 'AUTH_RETRIEVE_USER_
 INSERT INTO authority (authority, code, alias, description)
 SELECT 'AUTH_RETRIEVE_USER_ALL_FOR_DELIVERY', 'R002', 'RUAFD', 'for delivery'
 WHERE NOT EXISTS (SELECT 1 FROM authority WHERE authority = 'AUTH_RETRIEVE_USER_ALL_FOR_DELIVERY');
+
+
+INSERT INTO terms (termsname)
+SELECT 'TERMS_MEMBERSHIP'
+WHERE NOT EXISTS (SELECT 1 FROM terms WHERE termsname = 'TERMS_MEMBERSHIP');
+
+INSERT INTO terms (termsname)
+SELECT 'TERMS_MARKETING'
+WHERE NOT EXISTS (SELECT 1 FROM terms WHERE termsname = 'TERMS_MARKETING');
+
+INSERT INTO terms (termsname)
+SELECT 'TERMS_INFO_SHARE'
+WHERE NOT EXISTS (SELECT 1 FROM terms WHERE termsname = 'TERMS_INFO_SHARE');
+
+
+INSERT INTO phoneBook (user_name, phone_number)
+SELECT 'mom', '010-1234-2225'
+WHERE NOT EXISTS (SELECT 1 FROM phoneBook WHERE user_name = 'mom');
+
+INSERT INTO phoneBook (user_name, phone_number)
+SELECT 'father', '010-4545-2985'
+    WHERE NOT EXISTS (SELECT 1 FROM phoneBook WHERE user_name = 'father');
+
+INSERT INTO phoneBook (user_name, phone_number)
+SELECT 'alice_smith', '010-9987-0000'
+    WHERE NOT EXISTS (SELECT 1 FROM phoneBook WHERE user_name = 'alice_smith');
