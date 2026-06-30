@@ -97,7 +97,22 @@
     <div class="inner-div" id="imageResult">
     </div>
     <div class="inner-div">
-      https://spt.com/systemSupportApi/fileByteFromStorage?securedFilePath=.... API를 이용해 권한에 따른 파일 보호가 되는 확인해 보세요
+      <pre>
+      [anyone]: https://spt.com/systemSupportApi/fileByteFromStorage?securedFilePath=anyone/{서브경로}/{파일명}
+      ex: https://spt.com/systemSupportApi/fileByteFromStorage?securedFilePath=anyone/sub/abc.jpg
+
+      [login]: https://spt.com/systemSupportApi/fileByteFromStorage?securedFilePath=login/{서브경로}/{파일명}
+      ex: https://spt.com/systemSupportApi/fileByteFromStorage?securedFilePath=login/sub/abc.jpg
+
+      [특정 user]: https://spt.com/systemSupportApi/fileByteFromStorage?securedFilePath=user/{id숫자}/{서브경로}/{파일명}
+      ex: https://spt.com/systemSupportApi/fileByteFromStorage?securedFilePath=user/1/sub/abc.jpg
+
+      [특정 role]: https://spt.com/systemSupportApi/fileByteFromStorage?securedFilePath=role/{role_name}/{서브경로}/{파일명}
+      ex: https://spt.com/systemSupportApi/fileByteFromStorage?securedFilePath=role/ROLE_ADMIN/sub/abc.jpg
+
+      [특정 auth]: https://spt.com/systemSupportApi/fileByteFromStorage?securedFilePath=auth/{auth_name}/{서브경로}/{파일명}
+      ex: https://spt.com/systemSupportApi/fileByteFromStorage?securedFilePath=auth/AUTH_SPECIAL_FOR_TEST/sub/abc.jpg
+      </pre>
     </div>
 
   </div><br>
