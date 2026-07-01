@@ -1,56 +1,64 @@
 # SPT Code Analysis Workflow
 
-이 문서는 SPT Framework Web Core 저장소의 소스 코드를 분석할 때 따르는 도구 독립 절차다. Codex에서는 `.codex/skills/spt-code-analysis/SKILL.md`가 이 문서를 참조한다.
+이 문서는 SPT Framework Web Core 저장소의 소스 코드를 분석할 때 따르는 실행 절차다. 저장소 공통 원칙, 보안/민감 파일 규칙, 프로파일 정책, Base 코드 우선 원칙은 루트 `AGENT.md`를 기준으로 하고 여기서는 반복하지 않는다.
 
-## 핵심 규칙
+## 역할
 
-1. Base 코드 우선 원칙을 따른다.
-2. `git status --short`로 현재 staged/unstaged 변경을 확인한다. 기본 설명은 현재 작업트리 파일 기준으로 하되, 사용자가 원본·staged diff·변경 전후 비교를 요청하면 그 기준을 명확히 구분한다.
-3. 클래스, URL, 애노테이션, 프로퍼티, 호출자는 `rg`로 찾는다. 저장소 사실관계는 기억에 의존하지 않는다.
-4. 결론은 코드 근거가 있는 사실, 명시적인 추론, 일반적인 권고를 구분한다.
+- `AGENT.md`: 저장소 전체의 원칙과 금지 사항을 정의한다.
+- 이 문서: SPT 코드 분석 요청을 받았을 때 어떤 순서로 근거를 수집하고 결론을 낼지 정의한다.
+- `.codex/skills/spt-code-analysis/SKILL.md`: Codex가 이 workflow를 찾기 위한 얇은 진입점이다.
 
-## 분석 절차
+## 기본 흐름
 
-1. 사용자가 언급한 분석 대상을 먼저 식별한다: URL, 클래스, 메소드, 애노테이션, 프로파일 키, 템플릿, SQL, 로그 라인.
-2. 1차 탐색은 `rg`로 직접 정의와 호출자를 찾는다. Java 심볼 관계, 오버로드, AOP/프록시, Bean 등록, 프로파일 조건처럼 문자열 검색만으로 부족한 경우에는 IDE/LSP, Gradle 컴파일, 로그, 설정 파일을 함께 확인한다.
-3. 관련성이 높은 최소 파일을 UTF-8 인코딩으로 연다.
-4. 결론을 내리기 전에 프레임워크 연결 지점을 추적한다.
-   - `SptWfwApplication`의 활성화 애노테이션
-   - 커스텀 `@Enable_*` 애노테이션과 조건
-   - `_frameworkWebCoreResources/_frameworkApplicationProperties`
-   - `_projectCommonResources/_projectApplicationProperties`
-   - `_projectCommon` 확장 구현체
-   - `_example` 사용 예제
-5. 답변을 뒷받침하는 구체적인 파일과 라인 근거를 제시한다.
+1. 사용자가 언급한 대상을 먼저 식별한다: 클래스, 메서드, URL, 애노테이션, 프로퍼티, 템플릿, SQL, 로그 라인.
+2. `git status --short`로 현재 작업트리 기준을 확인한다. 원본, staged diff, working tree 중 어떤 기준으로 답하는지 필요한 경우 명시한다.
+3. `rg`로 정의, 호출자, 설정 키, 테스트, 예제를 찾는다. 기억에 의존해 저장소 사실관계를 단정하지 않는다.
+4. 관련성이 높은 최소 파일을 UTF-8로 열고, 문자열 검색만으로 부족하면 컴파일, 테스트, 로그, Spring Bean 등록 흐름까지 확인한다.
+5. 결론은 코드로 확인한 사실, 코드 흐름에서 나온 추론, 일반 권고를 구분한다.
 
-## 컨트롤러와 요청 분석
+## 공통 추적 지점
 
-컨트롤러, 엔드포인트, 뷰를 분석할 때는 다음을 확인한다.
+분석 대상이 프레임워크 기능과 연결되면 다음 중 필요한 항목만 추적한다.
 
-1. request mapping, HTTP method, produces media type을 확인한다.
-2. 컨트롤러와 메소드의 `@Enable_*` 애노테이션을 확인한다.
-3. API 공통 성공/에러 응답 래핑 여부를 확인한다.
-4. `SecurityFilterChainConfig`와 프레임워크 보안 matcher 순서를 확인한다.
-5. DTO validation과 binding 동작을 확인한다.
-6. 엔드포인트가 view를 반환하면 관련 Thymeleaf 템플릿과 정적 자원을 확인한다.
-7. API 계약이 바뀌면 `http-client` 예제를 확인한다.
+- `SptWfwApplication`의 활성화 `@Enable_*` 애노테이션
+- 커스텀 `@Enable_*` 애노테이션 정의와 조건 클래스
+- Bean 등록 방식: `@Component`, `@Configuration`, `@Bean`, `@Conditional`
+- 필터, 인터셉터, AOP, ArgumentResolver, ControllerAdvice 적용 순서
+- `_frameworkWebCore`, `_projectCommon`, `_example`의 사용 예제와 확장 지점
+- 관련 테스트와 `http-client` 공개 예제
 
-## 설정 분석
+## 요청 유형별 체크리스트
 
-설정이나 서버 시작 동작을 분석할 때는 다음을 확인한다.
+### 컨트롤러와 요청 흐름
 
-1. `application.yml`과 관련된 모든 `application-{profile}.yml` 파일을 읽는다.
-2. `spring.config.import`를 따라 `_frameworkWebCoreResources`와 `_projectCommonResources`를 확인한다.
-3. 프로파일별 변경은 `local`, `dev`, `stg`, `prd` 구조를 함께 검토한다.
-4. 운영이나 스테이징 비밀값을 추측하지 않는다.
-5. 데이터소스 변경은 `SptWfwApplication`, Gradle DB 의존성, datasource 프로파일 설정을 함께 확인한다.
+- request mapping, HTTP method, consumes/produces를 확인한다.
+- 클래스/메서드에 붙은 커스텀 애노테이션과 공통 응답/예외 래핑 여부를 확인한다.
+- 보안 matcher, 필터, 인터셉터, argument resolver가 요청 전후에 어떤 순서로 개입하는지 확인한다.
+- DTO validation, binding, model attribute, session/request attribute 사용 여부를 확인한다.
+- View 반환이면 Thymeleaf 템플릿과 정적 리소스 연결을 확인한다.
 
-## 보안과 민감 파일
+### 설정과 서버 시작
 
-1. `http-client/http-client.private.env.json`의 내용을 출력하지 않는다.
-2. `src/main/resources/_frameworkWebCoreResources/keystore/keystore.p12`의 내용을 출력하거나 교체하지 않는다.
-3. `infra/h2DB`, DB 초기화 SQL, `infra/mysql-replication`은 데이터 손실 가능성이 있는 대상으로 취급한다.
+- 관련 `application-{profile}.yml`과 `spring.config.import`로 로딩되는 파일을 따라간다.
+- `@Conditional`, 프로파일, 메인 클래스 `@Enable_*` 조합으로 실제 Bean 등록 여부를 확인한다.
+- 서버 시작 오류는 에러 메시지의 bean dependency chain, condition report, 관련 자동 설정 순서부터 확인한다.
+- 데이터소스나 외부 인프라가 엮이면 Gradle 의존성, 프로파일 설정, 활성화 애노테이션을 한 묶음으로 본다.
 
-## 답변 방식
+### 로그와 런타임 동작
 
-답변은 간결하게 작성하고, 저장소 코드에 의존하는 결론은 파일 근거를 제시한다. 근거가 부족하면 확인한 내용과 아직 검증하지 못한 범위를 구분해서 밝힌다.
+- 로그 라인의 logger name, thread, MDC, timestamp를 먼저 해석한다.
+- 같은 요청 흐름에서 filter, interceptor, aspect, exception handler 순서를 맞춰본다.
+- 로그만으로 결론 내리지 말고 해당 로그를 만드는 코드와 조건을 찾아 확인한다.
+
+### 공통 유틸과 Base 코드
+
+- 호출 범위가 넓은 API는 기존 호출자와 예제 사용 방식을 먼저 확인한다.
+- static 상태, request thread 의존성, ApplicationContext 접근, 캐시 초기화 시점을 별도로 점검한다.
+- Base 코드 변경 제안은 실행 동작 변경인지, 문서/주석/단순 보정인지 구분한다.
+
+## 답변 기준
+
+- 결론 앞에 확인한 기준을 짧게 밝힌다: 현재 working tree, 특정 커밋, 로그, 테스트 결과 등.
+- 파일 근거가 필요한 설명은 경로와 라인을 제시한다.
+- 근거가 부족한 내용은 “추론” 또는 “추가 확인 필요”로 분리한다.
+- 변경 제안은 즉시 필요한 것, 나중에 해도 되는 것, 운영 리스크가 큰 것으로 나눠 우선순위를 둔다.
