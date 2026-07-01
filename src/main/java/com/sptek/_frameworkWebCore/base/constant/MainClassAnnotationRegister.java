@@ -10,6 +10,7 @@ import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 
@@ -31,8 +32,18 @@ public class MainClassAnnotationRegister {
                 }
             }
             mainClassAnnotationRegister = Map.copyOf(temp);
-            log.info(LoggingUtil.makeBaseForm(CommonConstants.FW_START_LOG_TAG, "MainClass Annotation Register", mainClassAnnotationRegister.toString()));
+            log.info(LoggingUtil.makeBaseForm(CommonConstants.FW_START_LOG_TAG, "MainClass Annotation Register", makeLogBody(mainClassAnnotationRegister)));
         }
+    }
+
+    private String makeLogBody(Map<String, Map<String, Object>> annotationRegister) {
+        return annotationRegister.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(entry -> "- %s %s".formatted(
+                        entry.getKey().replace(CommonConstants.FRAMEWORK_ANNOTATION_PACKAGE_NAME + ".", ""),
+                        entry.getValue().isEmpty() ? "" : entry.getValue()
+                ).stripTrailing())
+                .collect(Collectors.joining("\n"));
     }
 
     public static boolean hasAnnotation(Class<? extends Annotation> annotation) {
